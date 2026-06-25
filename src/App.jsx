@@ -1,50 +1,51 @@
 import React, { useState, useEffect } from 'react';
 
 function App() {
-  // 1. Local Storage 
+  // 1. Local Storage with updated initial tasks containing categories
   const [tasks, setTasks] = useState(() => {
     const savedTasks = localStorage.getItem('my_tasks');
     return savedTasks ? JSON.parse(savedTasks) : [
-      { text: 'Finish HTML/CSS Roadmaps 💻', isCompleted: false },
-      { text: 'Prepare for Java Exam 📚', isCompleted: false },
-      { text: 'Increase Green Squares on GitHub 🟩', isCompleted: false }
+      { text: 'Finish HTML/CSS Roadmaps 💻', isCompleted: false, date: 'No Date', category: 'WebDev' },
+      { text: 'Prepare for Java Exam 📚', isCompleted: false, date: 'No Date', category: 'University' },
+      { text: 'Increase Green Squares on GitHub 🟩', isCompleted: false, date: 'No Date', category: 'Personal' }
     ];
   });
 
   const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // 🌙 Dark Mode (Default: false)
+  const [taskDate, setTaskDate] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  //task date state
-    const [taskDate, setTaskDate] = useState('');
+  // 🏷️ New States for Categories
+  const [taskCategory, setTaskCategory] = useState('Personal'); // Default selected category for new task
+  const [selectedFilter, setSelectedFilter] = useState('All'); // Current filter tab selected
 
-  // Tasks  Local Storage Update 
+  // Tasks Local Storage Update 
   useEffect(() => {
     localStorage.setItem('my_tasks', JSON.stringify(tasks));
   }, [tasks]);
   
-  //add task
+  // Add task logic
   const handleAddTask = () => {
     if (inputValue.trim() !== '') {
       setTasks([...tasks, { 
         text: inputValue, 
         isCompleted: false,
-         date:taskDate ? taskDate : 'No Date'
+        date: taskDate ? taskDate : 'No Date',
+        category: taskCategory // 👈 Save the selected category tag
       }]);
       setInputValue('');
-      setTaskDate(''); //after adding task,clear the date input
+      setTaskDate('');
     }
   };
 
-  // delete Logic 
+  // Delete Logic 
   const handleDeleteTask = (indexToDelete) => {
     const updatedTasks = tasks.filter((_, index) => index !== indexToDelete);
     setTasks(updatedTasks);
   };
 
-  //  Done/Pending 
+  // Done/Pending 
   const handleToggleComplete = (indexToToggle) => {
     const updatedTasks = tasks.map((task, index) => {
       if (index === indexToToggle) {
@@ -55,32 +56,33 @@ function App() {
     setTasks(updatedTasks);
   };
 
-  // Search  Tasks Filter  Logic එක
-  const filteredTasks = tasks.filter(task => 
-    task.text.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 🔍 Filter Logic (Combines both Search and Category Tabs)
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = task.text.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedFilter === 'All' || task.category === selectedFilter;
+    return matchesSearch && matchesCategory; // Return true only if both match
+  });
 
-  //  Dashboard 
+  // Dashboard calculations
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.isCompleted).length;
   const remainingTasks = totalTasks - completedTasks;
 
   return (
-    //  div  Dark Mode  Background 
+    // Main background div
     <div style={{ 
       display: 'flex', 
       justifyContent: 'center', 
       alignItems: 'center', 
       minHeight: '100vh',
-      // Condition ? True  : False 
       background: isDarkMode ? 'linear-gradient(-45deg, #252120, #270227, #626566, #23d5ab)' : 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)', 
       transition: 'all 0.5s ease' 
     }}>
       
-      {/*  (Main Card Container) */}
+      {/* Main Card Container */}
       <div style={{ 
         background: isDarkMode ? 'rgba(30, 30, 40, 0.95)' : 'rgba(255, 255, 255, 0.85)', 
-        color: isDarkMode ? '#fff' : '#333', // Dark mode 
+        color: isDarkMode ? '#fff' : '#333', 
         padding: '30px', 
         borderRadius: '15px', 
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
@@ -90,14 +92,13 @@ function App() {
         transition: 'all 0.5s ease'
       }}>
         
-        
         <h1 style={{ color: isDarkMode ? '#fff' : '#333', marginBottom: '20px' }}>My Coding Goals 🎯</h1>
         
-        {/*  Dashboard UI Panel  */}
+        {/* Dashboard UI Panel */}
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-around', 
-          background: isDarkMode ? '#2a2a3a' : '#f8f9fa', // Dark mode 
+          background: isDarkMode ? '#2a2a3a' : '#f8f9fa', 
           padding: '12px', 
           borderRadius: '10px', 
           marginTop: '20px',
@@ -125,7 +126,7 @@ function App() {
           </div>
         </div>
 
-        {/*  Theme Toggle Button */}
+        {/* Theme Toggle Button */}
         <div style={{ marginBottom: '20px' }}>
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)} 
@@ -145,7 +146,7 @@ function App() {
           </button>
         </div>
 
-        {/* 🔍 Search Input Box  */}
+        {/* Search Input Box */}
         <div style={{ marginBottom: '20px' }}>
           <input 
             type="text"
@@ -158,15 +159,39 @@ function App() {
               borderRadius: '8px', 
               border: '1px solid #ccc', 
               fontSize: '15px',
-              background: isDarkMode ? '#2a2a3a' : '#fff', // Dark Mode Input Box 
+              background: isDarkMode ? '#2a2a3a' : '#fff', 
               color: isDarkMode ? '#fff' : '#000',
               transition: 'all 0.5s ease'
             }}
           />
         </div>
 
-        {/*  Add Task Input, Button  */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+        {/* 🏷️ New UI Section: Category Filter Tabs (All, University, WebDev, Personal) */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '20px' }}>
+          {['All', 'University', 'WebDev', 'Personal'].map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedFilter(category)}
+              style={{
+                padding: '6px 12px',
+                cursor: 'pointer',
+                borderRadius: '15px',
+                border: 'none',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                // Highlight active tab button
+                background: selectedFilter === category ? '#23a6d5' : (isDarkMode ? '#2a2a3a' : '#e0e0e0'),
+                color: selectedFilter === category ? 'white' : (isDarkMode ? '#fff' : '#333'),
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {/* Add Task Input, Dropdown, Date and Button */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px', alignItems: 'center' }}>
           <input 
             type="text" 
             placeholder="Enter your new work....." 
@@ -174,8 +199,7 @@ function App() {
             onChange={(e) => setInputValue(e.target.value)} 
             style={{ 
               padding: '12px', 
-              width: '230px', 
-              marginRight: '10px', 
+              width: '93%', 
               borderRadius: '5px', 
               border: '1px solid #ccc',
               background: isDarkMode ? '#2a2a3a' : '#fff',
@@ -183,36 +207,51 @@ function App() {
               transition: 'all 0.5s ease'
             }}
           />
-          <button onClick={handleAddTask} style={{ padding: '12px 20px', cursor: 'pointer', background: '#23a6d5', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold' }}>
-            Add
-          </button>
+          
+          <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', padding: '0 10px', gap: '5px' }}>
+            {/* 🏷️ Dropdown menu to select a category tag for the new task */}
+            <select
+              value={taskCategory}
+              onChange={(e) => setTaskCategory(e.target.value)}
+              style={{
+                padding: '10px',
+                borderRadius: '5px',
+                border: '1px solid #ccc',
+                background: isDarkMode ? '#2a2a3a' : '#fff',
+                color: isDarkMode ? '#fff' : '#000',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="Personal">🔑 Personal</option>
+              <option value="University">🎓 University</option>
+              <option value="WebDev">💻 WebDev</option>
+            </select>
+
+            {/* Date Input Box */}
+            <input
+              type="date"
+              value={taskDate} 
+              onChange={(e) => setTaskDate(e.target.value)}
+              style={{
+                padding: '10px',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                background: isDarkMode ? '#2a2a3a' : '#fff',
+                color: isDarkMode ? '#fff' : '#000',
+                cursor: 'pointer'
+              }}
+            />
+            <button onClick={handleAddTask} style={{ padding: '10px 20px', cursor: 'pointer', background: '#23a6d5', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold' }}>
+              Add
+            </button>
+          </div>
         </div>
 
-
-
-        <input
-        type="date"
-        value={taskDate}
-        onChange={(e) => setTaskDate(e.target.value)}
-        style={{
-          padding:'12px',
-         border:'1px solid #ccc',
-          marginRight:'10px',
-          borderRadius:'5px',
-          background:isDarkMode ? '#2a2a3a':'#fff',
-          color:isDarkMode?'#fff':'#000',
-          transition:'all 0.5s ease'
-        }}
-        
-        />
-
-
-
-        {/*  Tasks  (List) */}
+        {/* Tasks (List) */}
         <ul style={{ listStyleType: 'none', padding: 0, marginTop: '20px' }}>
           {filteredTasks.map((task, index) => (
             <li key={index} style={{ 
-              background: isDarkMode ? '#2a2a3a' : 'white', // List Items  Dark Mode 
+              background: isDarkMode ? '#2a2a3a' : 'white', 
               margin: '12px auto', 
               padding: '12px', 
               borderRadius: '8px', 
@@ -223,35 +262,35 @@ function App() {
               transition: 'all 0.5s ease'
             }}>
               
-           
-  <div 
-    onClick={() => handleToggleComplete(index)} 
-    style={{
-      cursor: 'pointer',
-      textAlign: 'left',
-      flex: 1
-    }}
-  >
-    <span style={{
-      textDecoration: task.isCompleted ? 'line-through' : 'none',
-      color: task.isCompleted ? 'gray' : (isDarkMode ? '#fff' : 'black'),
-    }}>
-      {task.isCompleted ? '⬛ ' : '✅ '} {task.text}
-    </span>
-    
-    {/* 📅  */}
-    <span style={{ fontSize: '11px', color: '#888', marginLeft: '25px', display: 'block', marginTop: '2px' }}>
-      📅 Due: {task.date}
-    </span>
-  </div> 
-  
-  <button 
-    onClick={() => handleDeleteTask(index)} 
-    style={{ background: '#ff4d4d', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}
-  >
-    X
-  </button>
-</li>
+              <div 
+                onClick={() => handleToggleComplete(index)} 
+                style={{
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  flex: 1
+                }}
+              >
+                <span style={{
+                  textDecoration: task.isCompleted ? 'line-through' : 'none',
+                  color: task.isCompleted ? 'gray' : (isDarkMode ? '#fff' : 'black'),
+                  display: 'block'
+                }}>
+                  {task.isCompleted ? '⬛ ' : '✅ '} {task.text}
+                </span>
+                
+                {/* 📅 Display Due Date & Category Tag below the task text */}
+                <span style={{ fontSize: '11px', color: '#888', marginLeft: '25px', display: 'block', marginTop: '4px' }}>
+                  📅 Due: {task.date} | <span style={{ color: '#23a6d5', fontWeight: 'bold' }}>#{task.category}</span>
+                </span>
+              </div>
+              
+              <button 
+                onClick={() => handleDeleteTask(index)} 
+                style={{ background: '#ff4d4d', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}
+              >
+                X
+              </button>
+            </li>
           ))}
         </ul>
 
