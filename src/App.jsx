@@ -17,6 +17,9 @@ function App() {
   // 🌙 Dark Mode (Default: false)
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  //task date state
+    const [taskDate, setTaskDate] = useState('');
+
   // Tasks  Local Storage Update 
   useEffect(() => {
     localStorage.setItem('my_tasks', JSON.stringify(tasks));
@@ -25,12 +28,17 @@ function App() {
   //add task
   const handleAddTask = () => {
     if (inputValue.trim() !== '') {
-      setTasks([...tasks, { text: inputValue, isCompleted: false }]);
+      setTasks([...tasks, { 
+        text: inputValue, 
+        isCompleted: false,
+         date:taskDate ? taskDate : 'No Date'
+      }]);
       setInputValue('');
+      setTaskDate(''); //after adding task,clear the date input
     }
   };
 
-  // delete Logic එක
+  // delete Logic 
   const handleDeleteTask = (indexToDelete) => {
     const updatedTasks = tasks.filter((_, index) => index !== indexToDelete);
     setTasks(updatedTasks);
@@ -65,7 +73,7 @@ function App() {
       alignItems: 'center', 
       minHeight: '100vh',
       // Condition ? True  : False 
-      background: isDarkMode ? '#1e1e2f' : 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)', 
+      background: isDarkMode ? 'linear-gradient(-45deg, #252120, #270227, #626566, #23d5ab)' : 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)', 
       transition: 'all 0.5s ease' 
     }}>
       
@@ -117,7 +125,7 @@ function App() {
           </div>
         </div>
 
-        {/* 🌙/☀️ Theme Toggle Button */}
+        {/*  Theme Toggle Button */}
         <div style={{ marginBottom: '20px' }}>
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)} 
@@ -137,7 +145,7 @@ function App() {
           </button>
         </div>
 
-        {/* 🔍 Search Input Box එක */}
+        {/* 🔍 Search Input Box  */}
         <div style={{ marginBottom: '20px' }}>
           <input 
             type="text"
@@ -157,7 +165,7 @@ function App() {
           />
         </div>
 
-        {/*  Add Task Input, Button එක */}
+        {/*  Add Task Input, Button  */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
           <input 
             type="text" 
@@ -180,6 +188,26 @@ function App() {
           </button>
         </div>
 
+
+
+        <input
+        type="date"
+        value={taskDate}
+        onChange={(e) => setTaskDate(e.target.value)}
+        style={{
+          padding:'12px',
+         border:'1px solid #ccc',
+          marginRight:'10px',
+          borderRadius:'5px',
+          background:isDarkMode ? '#2a2a3a':'#fff',
+          color:isDarkMode?'#fff':'#000',
+          transition:'all 0.5s ease'
+        }}
+        
+        />
+
+
+
         {/*  Tasks  (List) */}
         <ul style={{ listStyleType: 'none', padding: 0, marginTop: '20px' }}>
           {filteredTasks.map((task, index) => (
@@ -195,26 +223,35 @@ function App() {
               transition: 'all 0.5s ease'
             }}>
               
-              <span 
-                onClick={() => handleToggleComplete(index)} 
-                style={{
-                  cursor: 'pointer',
-                  textDecoration: task.isCompleted ? 'line-through' : 'none',
-                  color: task.isCompleted ? 'gray' : (isDarkMode ? '#fff' : 'black'),
-                  textAlign: 'left',
-                  flex: 1
-                }}
-              >
-                {task.isCompleted ? '⬛ ' : '✅ '} {task.text}
-              </span>
-              
-              <button 
-                onClick={() => handleDeleteTask(index)} 
-                style={{ background: '#ff4d4d', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}
-              >
-                X
-              </button>
-            </li>
+           
+  <div 
+    onClick={() => handleToggleComplete(index)} 
+    style={{
+      cursor: 'pointer',
+      textAlign: 'left',
+      flex: 1
+    }}
+  >
+    <span style={{
+      textDecoration: task.isCompleted ? 'line-through' : 'none',
+      color: task.isCompleted ? 'gray' : (isDarkMode ? '#fff' : 'black'),
+    }}>
+      {task.isCompleted ? '⬛ ' : '✅ '} {task.text}
+    </span>
+    
+    {/* 📅  */}
+    <span style={{ fontSize: '11px', color: '#888', marginLeft: '25px', display: 'block', marginTop: '2px' }}>
+      📅 Due: {task.date}
+    </span>
+  </div> 
+  
+  <button 
+    onClick={() => handleDeleteTask(index)} 
+    style={{ background: '#ff4d4d', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}
+  >
+    X
+  </button>
+</li>
           ))}
         </ul>
 
