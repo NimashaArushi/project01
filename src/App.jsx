@@ -15,10 +15,12 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [taskDate, setTaskDate] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
-
-  // 🏷️ New States for Categories
-  const [taskCategory, setTaskCategory] = useState('Personal'); // Default selected category for new task
-  const [selectedFilter, setSelectedFilter] = useState('All'); // Current filter tab selected
+  const [taskCategory, setTaskCategory] = useState('Personal'); 
+  const [selectedFilter, setSelectedFilter] = useState('All'); 
+  
+  // Fixed State Typos here
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editValue, setEditValue] = useState('');
 
   // Tasks Local Storage Update 
   useEffect(() => {
@@ -32,7 +34,7 @@ function App() {
         text: inputValue, 
         isCompleted: false,
         date: taskDate ? taskDate : 'No Date',
-        category: taskCategory // 👈 Save the selected category tag
+        category: taskCategory // Save the selected category tag
       }]);
       setInputValue('');
       setTaskDate('');
@@ -56,17 +58,45 @@ function App() {
     setTasks(updatedTasks);
   };
 
-  // 🔍 Filter Logic (Combines both Search and Category Tabs)
+  // Filter Logic (Combines both Search and Category Tabs)
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.text.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedFilter === 'All' || task.category === selectedFilter;
-    return matchesSearch && matchesCategory; // Return true only if both match
+    return matchesSearch && matchesCategory;
   });
 
   // Dashboard calculations
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.isCompleted).length;
   const remainingTasks = totalTasks - completedTasks;
+
+  // clear all
+  const handleClearAll = () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete all task ?");
+    if (confirmDelete) {
+      setTasks([]);
+    }
+  };
+
+  // Fixed Typos inside Edit Handlers
+  const handleEditClick = (index, currentText) => {
+    setEditingIndex(index);
+    setEditValue(currentText);
+  };
+
+  const handleSaveEdit = (indexToSave) => {
+    if (editValue.trim() !== '') {
+      const updatedTasks = tasks.map((task, index) => {
+        if (index === indexToSave) {
+          return { ...task, text: editValue };
+        }
+        return task;
+      });
+      setTasks(updatedTasks);
+      setEditingIndex(null); 
+      setEditValue('');
+    }
+  };
 
   return (
     // Main background div
@@ -144,6 +174,24 @@ function App() {
           >
             {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
+
+          <button
+            onClick={handleClearAll}
+            style={{
+              padding:'8px 15px',
+              cursor:'pointer',
+              borderRadius:'20px',
+              border:'none',
+              background:'#ff4d4d',
+              color:'white',
+              marginLeft: '10px',
+              fontWeight:'bold',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            🗑️ Clear All
+          </button>
         </div>
 
         {/* Search Input Box */}
@@ -166,7 +214,7 @@ function App() {
           />
         </div>
 
-        {/* 🏷️ New UI Section: Category Filter Tabs (All, University, WebDev, Personal) */}
+        {/* Category Filter Tabs */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', marginBottom: '20px' }}>
           {['All', 'University', 'WebDev', 'Personal'].map((category) => (
             <button
@@ -179,7 +227,6 @@ function App() {
                 border: 'none',
                 fontSize: '12px',
                 fontWeight: 'bold',
-                // Highlight active tab button
                 background: selectedFilter === category ? '#23a6d5' : (isDarkMode ? '#2a2a3a' : '#e0e0e0'),
                 color: selectedFilter === category ? 'white' : (isDarkMode ? '#fff' : '#333'),
                 transition: 'all 0.3s ease'
@@ -209,7 +256,6 @@ function App() {
           />
           
           <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', padding: '0 10px', gap: '5px' }}>
-            {/* 🏷️ Dropdown menu to select a category tag for the new task */}
             <select
               value={taskCategory}
               onChange={(e) => setTaskCategory(e.target.value)}
@@ -227,7 +273,6 @@ function App() {
               <option value="WebDev">💻 WebDev</option>
             </select>
 
-            {/* Date Input Box */}
             <input
               type="date"
               value={taskDate} 
@@ -262,34 +307,69 @@ function App() {
               transition: 'all 0.5s ease'
             }}>
               
-              <div 
-                onClick={() => handleToggleComplete(index)} 
-                style={{
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  flex: 1
-                }}
-              >
-                <span style={{
-                  textDecoration: task.isCompleted ? 'line-through' : 'none',
-                  color: task.isCompleted ? 'gray' : (isDarkMode ? '#fff' : 'black'),
-                  display: 'block'
-                }}>
-                  {task.isCompleted ? '⬛ ' : '✅ '} {task.text}
-                </span>
-                
-                {/* 📅 Display Due Date & Category Tag below the task text */}
-                <span style={{ fontSize: '11px', color: '#888', marginLeft: '25px', display: 'block', marginTop: '4px' }}>
-                  📅 Due: {task.date} | <span style={{ color: '#23a6d5', fontWeight: 'bold' }}>#{task.category}</span>
-                </span>
-              </div>
+              {editingIndex === index ? (
+                <div style={{ display: 'flex', flex: 1, gap: '10px', marginRight: '10px' }}>
+                  <input 
+                    type="text"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '6px 10px',
+                      borderRadius: '5px',
+                      border: '1px solid #23a6d5',
+                      background: isDarkMode ? '#1e1e28' : '#fff',
+                      color: isDarkMode ? '#fff' : '#000'
+                    }}
+                  />
+                  <button 
+                    onClick={() => handleSaveEdit(index)}
+                    style={{ background: '#2ed573', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Save
+                  </button>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => handleToggleComplete(index)} 
+                  style={{
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    flex: 1
+                  }}
+                >
+                  <span style={{
+                    textDecoration: task.isCompleted ? 'line-through' : 'none',
+                    color: task.isCompleted ? 'gray' : (isDarkMode ? '#fff' : 'black'),
+                    display: 'block'
+                  }}>
+                    {task.isCompleted ? '⬛ ' : '✅ '} {task.text}
+                  </span>
+                  
+                  <span style={{ fontSize: '11px', color: '#888', marginLeft: '25px', display: 'block', marginTop: '4px' }}>
+                    📅 Due: {task.date} | <span style={{ color: '#23a6d5', fontWeight: 'bold' }}>#{task.category}</span>
+                  </span>
+                </div>
+              )}
               
-              <button 
-                onClick={() => handleDeleteTask(index)} 
-                style={{ background: '#ff4d4d', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}
-              >
-                X
-              </button>
+              <div style={{ display: 'flex', gap: '5px' }}>
+                {editingIndex !== index && (
+                  <button 
+                    onClick={() => handleEditClick(index, task.text)} 
+                    style={{ background: '#fafafa', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}
+                  >
+                    ✏️
+                  </button>
+                )}
+                
+                <button 
+                  onClick={() => handleDeleteTask(index)} 
+                  style={{ background: '#ff4d4d', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}
+                >
+                  X
+                </button>
+              </div>
+
             </li>
           ))}
         </ul>
