@@ -99,15 +99,21 @@ function App() {
   };
 
   return (
-    // Main background div
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh',
-      background: isDarkMode ? 'linear-gradient(-45deg, #252120, #270227, #626566, #23d5ab)' : 'linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)', 
-      transition: 'all 0.5s ease' 
-    }}>
+
+// Main background div
+<div style={{ 
+  display: 'flex', 
+  justifyContent: 'center', 
+  alignItems: 'center', 
+  minHeight: '100vh',
+  
+
+  background: isDarkMode  
+    ? "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTH9IkEbAJ4FOPuGM22R_PPhXkrQ8_U7YnwAdpLVb2CakppHkdcBTVV9nCd&s=10') center / cover no-repeat" 
+    : "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbQjkC6ZIh7ZBjmiescDWvWy9TiQLWEKsR547jbEiI0ogBR2NOMrDcFdxB&s=10') center / cover no-repeat",
+  
+  transition: 'all 0.5s ease', 
+}}>
       
       {/* Main Card Container */}
       <div style={{ 
